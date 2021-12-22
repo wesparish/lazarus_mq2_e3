@@ -2498,3 +2498,31 @@ SUB event_sendInstanceInvites(line, ChatSender)
 SUB event_outOfSomething(line, Something)
   /docommand ${ChatToggle} [${Me.Name}] I'm out of ${Something}!
 /return
+
+|-----------------------------------------------------------|
+|- Automatically run /mapshow npc to refresh NPCs anytime  -|
+|- the ${SpawnCount} changes in the zone                   -|
+|- Install Instructions:                                   -|
+|- Add this SUB to the bottom of e3 Includes/e3_Basics.inc -|
+|- Add subroutine check for the appropriate classes        -|
+|- in e3 Macro Inis/Advanced Settings.ini                  -|
+|-  ex:   DRU Function#12=check_mapshow_npc                -|
+|- Add setting to your character.ini                       -|
+|-  [Misc]                                                 -|
+|-  AutoMapshowNpc=On                                      -|
+|-----------------------------------------------------------|
+SUB check_mapshow_npc
+/if (${Debug}) /echo |-check_mapshow_npc ==>
+  /if (!${Defined[AutoMapshowNpc]}) {
+    /call iniToVarV "${Character_Ini},Misc,AutoMapshowNpc" AutoMapshowNpc bool outer
+    /declare AutoMapshowNpcNumSpawns int outer ${SpawnCount[npc]}
+  }
+  /if (${AutoMapshowNpc} && !${Assisting}) {
+    /if (${AutoMapshowNpcNumSpawns} != ${SpawnCount[npc]}) {
+      /if (${Debug}) /echo SpawnCount changed from ${AutoMapshowNpcNumSpawns} to ${SpawnCount[npc]}, running /mapshow npc
+      /mapshow npc
+      /varset AutoMapshowNpcNumSpawns ${SpawnCount[npc]}
+    }
+  }
+/if (${Debug}) /echo <== check_mapshow_npc -|
+/RETURN
