@@ -1,0 +1,17 @@
+Sub Main
+    :Loop
+
+    /tar mastruq
+
+    :ClearCursor 
+    /if (${Cursor.ID}) { 
+        /autoinventory 
+        /goto :ClearCursor 
+    } 
+
+    /delay 5s
+    /casting "Enthrall" 7
+    /delay 10s !${Me.Casting.ID}
+
+    /goto :Loop
+/return

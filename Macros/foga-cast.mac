@@ -1,0 +1,17 @@
+Sub Main
+    :Loop
+
+    /tar mastruq
+
+    :ClearCursor 
+    /if (${Cursor.ID}) { 
+        /autoinventory 
+        /goto :ClearCursor 
+    } 
+
+    /delay 5s
+    /casting "Smite" 4
+    /delay 10s !${Me.Casting.ID}
+
+    /goto :Loop
+/return
