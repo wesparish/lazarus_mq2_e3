@@ -1,0 +1,23 @@
+
+
+Sub Main
+    :Loop
+
+    /tar mastruq
+
+    :ClearCursor 
+    /if (${Cursor.ID}) { 
+        /autoinventory 
+        /goto :ClearCursor 
+    } 
+
+    /delay 5s
+    /casting "Shock of Spikes" 2
+    /delay 10s !${Me.Casting.ID}
+
+    /delay 5s
+    /casting "Burst of Flame" 3
+    /delay 10s !${Me.Casting.ID}
+
+    /goto :Loop
+/return
