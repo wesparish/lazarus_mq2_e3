@@ -1,0 +1,33 @@
+Sub Main
+    :Loop
+
+    /tar mastruq
+
+    :ClearCursor 
+    /if (${Cursor.ID}) { 
+        /autoinventory 
+        /goto :ClearCursor 
+    } 
+
+    /delay 5s
+    /casting "Burst of Flame" 4
+    /delay 10s !${Me.Casting.ID}
+
+    /delay 5s
+    /casting "Shock of Blades" 5
+    /delay 10s !${Me.Casting.ID}
+
+    /delay 5s
+    /casting "Renew Elements" 6
+    /delay 10s !${Me.Casting.ID}
+
+    /delay 5s
+    /casting "True North" 7
+    /delay 10s !${Me.Casting.ID}
+
+    /delay 5s
+    /casting "Minor Shielding" 8
+    /delay 10s !${Me.Casting.ID}
+
+    /goto :Loop
+/return
