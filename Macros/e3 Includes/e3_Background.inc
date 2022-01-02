@@ -21,7 +21,7 @@ SUB check_Zone
     } else {
       /pet taunt off
     }
-		/squelch /pet ghold on
+		|- /squelch /pet ghold on
 	}
 	/call check_tribZone
   |reload cure arrays, supports only checking cures per zone
