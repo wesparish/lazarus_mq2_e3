@@ -15,7 +15,12 @@ SUB check_Zone
 
 	/if (${Me.Pet.ID}) {
 		/squelch /pet follow
-		/squelch /pet taunt off
+		|- /squelch /pet taunt off
+    /if (${Me.Pet.ID} && ${petTaunt}) {
+      /pet taunt on
+    } else {
+      /pet taunt off
+    }
 		/squelch /pet ghold on
 	}
 	/call check_tribZone
