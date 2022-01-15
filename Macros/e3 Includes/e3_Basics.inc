@@ -2040,7 +2040,8 @@ SUB event_collect(line, ChatSender, RequestedItem)
   /if (${Me.Name.Equal[${ChatSender}]}) {
     /declare i int local
     /for i 1 to ${Group.Members}
-      /t ${Group.Member[${i}]} Gimme ${RequestedItem}
+      |/t ${Group.Member[${i}]} Gimme ${RequestedItem}
+      /bct ${Group.Member[${i}]} Gimme ${RequestedItem}
       /delay 4s
     /next i 
   }
