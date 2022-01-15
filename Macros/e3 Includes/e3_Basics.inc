@@ -1708,6 +1708,7 @@ Sub basics_Aliases
 |- Must add /doevents gimme to basics_Background_Events in e3_Basics.ini
 |-----------------------------------------------------------|
 #event gimme "#1# tells you, 'Gimme #2#'"
+#event gimme "[#1#(msg)] Gimme #2#"
 |#event gimme "<#1#> Gimme #2#"
 sub event_gimme(line, ChatSender, RequestedItem)
 	/declare DebugGimme false
@@ -2039,7 +2040,8 @@ SUB event_collect(line, ChatSender, RequestedItem)
   /if (${Me.Name.Equal[${ChatSender}]}) {
     /declare i int local
     /for i 1 to ${Group.Members}
-      /t ${Group.Member[${i}]} Gimme ${RequestedItem}
+      |/t ${Group.Member[${i}]} Gimme ${RequestedItem}
+      /bct ${Group.Member[${i}]} Gimme ${RequestedItem}
       /delay 4s
     /next i 
   }
