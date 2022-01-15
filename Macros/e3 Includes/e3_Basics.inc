@@ -1708,6 +1708,7 @@ Sub basics_Aliases
 |- Must add /doevents gimme to basics_Background_Events in e3_Basics.ini
 |-----------------------------------------------------------|
 #event gimme "#1# tells you, 'Gimme #2#'"
+#event gimme "[#1#(msg)] Gimme #2#"
 |#event gimme "<#1#> Gimme #2#"
 sub event_gimme(line, ChatSender, RequestedItem)
 	/declare DebugGimme false
