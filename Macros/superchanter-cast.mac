@@ -7,10 +7,10 @@ Sub Main
     /if (${Cursor.ID}) { 
         /autoinventory 
         /goto :ClearCursor 
-    } 
+    }
 
     /delay 5s
-    /casting "Enthrall" 7
+    /casting "True North" 5
     /delay 10s !${Me.Casting.ID}
 
     /goto :Loop
