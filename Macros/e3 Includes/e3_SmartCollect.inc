@@ -74,10 +74,11 @@ SUB event_smartCollect(line, ChatSender)
         /if (${SmartCollectDebug}) /echo [SmartCollect] /bct ${CollectFromBot[${botIndex}]} gimme ${CollectItem[${itemIndex}]}
         /bct ${CollectFromBot[${botIndex}]} gimme ${CollectItem[${itemIndex}]}
         | Wait for trade window to open, then close, or wait 4s max
-        /if (${SmartCollectDebug}) /echo /delay 2s ${Window[TradeWnd].Open}
-        /delay 2s ${Window[TradeWnd].Open}
-        /if (${SmartCollectDebug}) /echo /delay 2s !${Window[TradeWnd].Open}
-        /delay 2s !${Window[TradeWnd].Open}
+        |/if (${SmartCollectDebug}) /echo /delay 2s ${Window[TradeWnd].Open}
+        |/delay 2s ${Window[TradeWnd].Open}
+        |/if (${SmartCollectDebug}) /echo /delay 2s !${Window[TradeWnd].Open}
+        |/delay 2s !${Window[TradeWnd].Open}
+	/delay 4s
       /next itemIndex
     }
   /next botIndex
