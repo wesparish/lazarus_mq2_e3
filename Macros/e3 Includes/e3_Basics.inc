@@ -1712,6 +1712,9 @@ Sub basics_Aliases
 |#event gimme "<#1#> Gimme #2#"
 sub event_gimme(line, ChatSender, RequestedItem)
 	/declare DebugGimme false
+  /declare replyType string local
+  /varset replyType /tell
+  /if (${Bool[${Select[${ChatSender}, ${NetBots.Client}]}]}) /varset replyType /bct
 	/if (${DebugGimme}) /echo |- event_gimme ==>
   /if (${Waiting4Rez}) /return
   /if (${Bool[${Me.Buff[Resurrection Sickness]}]}) /return
@@ -1720,11 +1723,11 @@ sub event_gimme(line, ChatSender, RequestedItem)
 	/if (${DebugGimme}) /echo ${senderLoc}
 	/if (${DebugGimme}) /echo Distance = ${Math.Distance[${senderLoc}]}
 	/if (${Math.Distance[${Spawn[${ChatSender}].Loc}]}>100) {
-		/tell ${ChatSender} You're too far away. Please move closer and ask again.
+		/docommand ${replyType} ${ChatSender} You're too far away. Please move closer and ask again.
 		/return
 	}
 	/if (${Bool[${Cursor.ID}]} || ${medBreak} || ${Me.Invis} || ${Me.PctHPs} < 85 || ${Me.PctAggro} > 1 || ${Me.CombatState.Equal[COMBAT]} || ${Assisting} || ${Me.Moving} || ${Me.Combat}) {
-		/tell ${ChatSender} I'm busy
+		/docommand ${replyType} ${ChatSender} I'm busy
 		/return
 	}
 	/declare platOnCursor local false
@@ -1740,13 +1743,13 @@ sub event_gimme(line, ChatSender, RequestedItem)
   }
 
   /if (!${GimmeSharing} && !${IsMyBot}) {
-    /tell ${ChatSender} I have disabled Gimme sharing, please seek your supplies elsewhere
+    /docommand ${replyType} ${ChatSender} I have disabled Gimme sharing, please seek your supplies elsewhere
     /return
   }
 
 	| check if the requestor can be reached
 	/if (!${Spawn[${ChatSender}].LineOfSight}) {
-		/tell ${ChatSender} Where are you? I don't see you. Please move closer if you want me to give you something.
+		/docommand ${replyType} ${ChatSender} Where are you? I don't see you. Please move closer if you want me to give you something.
 		/delay 10
 		/return
 	}	
@@ -1754,7 +1757,7 @@ sub event_gimme(line, ChatSender, RequestedItem)
 	/if (${DebugGimme}) /echo RequestedItem IsModShard = ${Bool[${RequestedItem.Find[Modulation Shard]}]}
 	/declare IsRequestedItemModShard bool local ${Bool[${RequestedItem.Find[Modulation Shard]}]}
 	
-	/tell ${ChatSender} ${RequestedItem}, coming right up
+	/docommand ${replyType} ${ChatSender} ${RequestedItem}, coming right up
 	/declare DiamondCoinName Diamond Coin
 	/declare DCName DC
 	/declare DiamondCoinsName Diamond Coins
@@ -1795,7 +1798,7 @@ sub event_gimme(line, ChatSender, RequestedItem)
 			/varset platOnCursor true
 		} else {
 			/delay 3s
-			/tell ${ChatSender} I'm all out of ${RequestedItem}
+			/docommand ${replyType} ${ChatSender} I'm all out of ${RequestedItem}
 		}
 	} else /if (${Bool[${FindItem[=${RequestedItem}]}]} && !${IsRequestedItemModShard}) {
 		/if (${DebugGimme}) /echo Found item ${RequestedItem}
@@ -1807,7 +1810,7 @@ sub event_gimme(line, ChatSender, RequestedItem)
 			/delay 2s ${Bool[${Cursor.ID}]}
 		} else {
 			/delay 2s
-			/tell ${ChatSender} Only temporary items can be requested
+			/docommand ${replyType} ${ChatSender} Only temporary items can be requested
 			/return
 		}
 	} else /if (${Bool[${FindItem[=Summoned: ${RequestedItem}]}]}) {
@@ -1833,7 +1836,7 @@ sub event_gimme(line, ChatSender, RequestedItem)
 			/casting "Sanguine Mind Crystal"
 		} else {
 			/delay 2s
-			/tell ${ChatSender} Spell ${RequestedItem} not found
+			/docommand ${replyType} ${ChatSender} Spell ${RequestedItem} not found
 			/varset SummoningItem false
 		}
 		/if (${SummoningItem}) /delay 10s ${Bool[${Cursor.ID}]}
@@ -1851,7 +1854,7 @@ sub event_gimme(line, ChatSender, RequestedItem)
 		/if (${DebugGimme}) /echo IsClose = ${Bool[${Math.Distance[${senderLoc}]}<20]}
 		/click left target
 		/delay 3s ${Window[TradeWnd].Open}
-    /declare tradeTries int local 0
+    /declare tradeTries int local 0/
 		/while (${Window[TradeWnd].Open} && ${tradeTries} < 2) {
 			/notify TradeWnd TRDW_Trade_Button leftmouseup 
 			/delay 5
@@ -1870,7 +1873,7 @@ sub event_gimme(line, ChatSender, RequestedItem)
 		/if (${Stick.Active}) /squelch /stick off
 		/if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
 	} else /if (!${IsRequestedItemModShard}) {
-		/tell ${ChatSender} Sorry, I don't have a ${RequestedItem} and couldn't summon one for you. The spell/AA may be on cooldown.
+		/docommand ${replyType} ${ChatSender} Sorry, I don't have a ${RequestedItem} and couldn't summon one for you. The spell/AA may be on cooldown.
 	} 
 	| If the item is a modulation shard, tell everyone to put it in their bag
 	/if (${IsRequestedItemModShard}) {

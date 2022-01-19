@@ -70,16 +70,19 @@ SUB event_smartCollect(line, ChatSender)
   /for botIndex 1 to ${CollectFromBot.Size}
     | Don't attempt to collect items from myself
     /if (!${CollectFromBot[${botIndex}].Equal[${Me.Name}]}) {
-      /for itemIndex 1 to ${CollectItem.Size}
-        /if (${SmartCollectDebug}) /echo [SmartCollect] /bct ${CollectFromBot[${botIndex}]} gimme ${CollectItem[${itemIndex}]}
-        /bct ${CollectFromBot[${botIndex}]} gimme ${CollectItem[${itemIndex}]}
-        | Wait for trade window to open, then close, or wait 4s max
-        |/if (${SmartCollectDebug}) /echo /delay 2s ${Window[TradeWnd].Open}
-        |/delay 2s ${Window[TradeWnd].Open}
-        |/if (${SmartCollectDebug}) /echo /delay 2s !${Window[TradeWnd].Open}
-        |/delay 2s !${Window[TradeWnd].Open}
-	/delay 4s
-      /next itemIndex
+      /if (${Spawn[${CollectFromBot[${botIndex}]}].Distance}<100 && ${Spawn[${CollectFromBot[${botIndex}]}].LineOfSight}) {
+        /for itemIndex 1 to ${CollectItem.Size}
+          /if (${SmartCollectDebug}) /echo [SmartCollect] /bct ${CollectFromBot[${botIndex}]} gimme ${CollectItem[${itemIndex}]}
+          /bct ${CollectFromBot[${botIndex}]} gimme ${CollectItem[${itemIndex}]}
+          | Wait for trade window to open, then close, or wait 4s max
+          /if (${SmartCollectDebug}) /echo /delay 2s ${Window[TradeWnd].Open}
+          /delay 2s ${Window[TradeWnd].Open}
+          /if (${SmartCollectDebug}) /echo /delay 2s !${Window[TradeWnd].Open}
+          /delay 2s !${Window[TradeWnd].Open}
+        /next itemIndex
+      } else {
+        /echo [SmartCollect] ${CollectFromBot[${botIndex}]} is >100 units away or not in LineOfSight
+      }
     }
   /next botIndex
 /RETURN
