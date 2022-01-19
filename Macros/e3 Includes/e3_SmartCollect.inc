@@ -26,7 +26,7 @@
 | Declare variables used in the macros
 |--------------------------------------------------------------------------------|
 SUB smartCollect_Setup
-	/declare SmartCollectDebug bool outer TRUE
+	/declare SmartCollectDebug bool outer FALSE
   /if (${SmartCollectDebug}) /echo |- Setup SmartCollect ==>
 
   /if (${Bool[${Ini[${Character_Ini},SmartCollect]}]}) {
@@ -79,6 +79,7 @@ SUB event_smartCollect(line, ChatSender)
           /delay 2s ${Window[TradeWnd].Open}
           /if (${SmartCollectDebug}) /echo /delay 2s !${Window[TradeWnd].Open}
           /delay 2s !${Window[TradeWnd].Open}
+          /delay 2s
         /next itemIndex
       } else {
         /echo [SmartCollect] ${CollectFromBot[${botIndex}]} is >100 units away or not in LineOfSight
