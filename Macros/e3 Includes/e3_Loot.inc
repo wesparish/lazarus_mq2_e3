@@ -397,7 +397,7 @@ SUB EVENT_checkLootSetting(line, itemName)
 #event toggleMerchantSellUpdateLootIni "<#1#> Toggle Update Loot Ini Sell"
 #event toggleMerchantSellUpdateLootIni "[MQ2] Toggle Update Loot Ini Sell"
 SUB event_toggleMerchantSellUpdateLootIni(line, ChatSender)
-  /if (${ChatSender} && !${ChatSender.Equal[${Me.Name}]}) /return
+  /if (${Defined[ChatSender]} && !${ChatSender.Equal[${Me.Name}]}) /return
 
   /if (${toggleMerchantSellUpdateLootIni}) {
     /varset toggleMerchantSellUpdateLootIni FALSE
