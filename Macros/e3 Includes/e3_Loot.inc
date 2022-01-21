@@ -365,27 +365,127 @@ SUB loot_Handle(int slotNum, handle)
 #EVENT checkLootSetting "[MQ2] Check Loot Setting for #1#"
 SUB EVENT_checkLootSetting(line, itemName)
 /if (${Debug} || ${Debug_Loot}) /echo |- EVENT_checkLootSetting ==>
-	/declare itemToCheck string local ${itemName}
-	/if (${itemToCheck.Find[:]}) /varset itemToCheck ${itemToCheck.Replace[:,;]}
+  /declare itemToCheck string local ${itemName}
+  /if (${itemToCheck.Find[:]}) /varset itemToCheck ${itemToCheck.Replace[:,;]}
   /if (${itemToCheck.Find[,]}) {
     /call RemoveComma "${itemToCheck}"
     /varset itemToCheck ${Macro.Return}
   }
-	/declare i int local 1
-	
-	:check_Loot_Ini
-	/if (!${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|].Arg[1,${If[${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|].Find[~]},~,(]}].Equal[${itemToCheck}]}) {
-		/varcalc i ${i} + 1
-		/if (${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|].Length}) {
-			/goto :check_Loot_Ini
-		} else {
-			/echo No entry found.
-		}
-	} else {
-		/echo >>> [${itemName}=${Ini[${Loot_Ini},${itemToCheck.Left[1]},${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|]}]}] <<<
-	}
+  /declare i int local 1
+
+/if (${Debug} || ${Debug_Loot}) /echo ---- checking item ${itemToCheck}
+
+  :check_Loot_Ini
+  /if (!${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|].Arg[1,${If[${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|].Find[~]},~,(]}].Equal[${itemToCheck}]}) {
+    /varcalc i ${i} + 1
+    |/if (${Debug} || ${Debug_Loot}) /echo ---- ${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|]}
+    /if (${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|].Length}) {
+      /goto :check_Loot_Ini
+    } else {
+      /echo No entry found.
+    }
+  } else {
+    /echo >>> [${itemName}=${Ini[${Loot_Ini},${itemToCheck.Left[1]},${Ini[${Loot_Ini},${itemToCheck.Left[1]}].Arg[${i},|]}]}] <<<
+  }
 /if (${Debug} || ${Debug_Loot}) /echo <== EVENT_checkLootSetting -|
 /RETURN
+
+|----------------|
+|---- Fibbon ----|
+|----------------|
+| Toggles toggleMerchantSellUpdateLootIni on/off
+#event toggleMerchantSellUpdateLootIni "<#1#> Toggle Update Loot Ini Sell"
+#event toggleMerchantSellUpdateLootIni "[MQ2] Toggle Update Loot Ini Sell"
+SUB event_toggleMerchantSellUpdateLootIni(line, ChatSender)
+  /if (${ChatSender} && !${ChatSender.Equal[${Me.Name}]}) /return
+
+  /if (${toggleMerchantSellUpdateLootIni}) {
+    /varset toggleMerchantSellUpdateLootIni FALSE
+  } else {
+    /varset toggleMerchantSellUpdateLootIni TRUE
+  }
+  /echo toggleMerchantSellUpdateLootIni: ${toggleMerchantSellUpdateLootIni}
+/RETURN
+
+| This sub is called after selling an item to a merchant
+| It relies on shared variables provided by EVENT_merchantPrepareUpdateLootIni
+|  that pass in ini file information to write the ini entry
+|#EVENT merchantSaleUpdateLootIni "#*#You receive#*#for the #1#"
+|#EVENT merchantSaleUpdateLootIni "#*#You receive#*#for the #1#."
+#EVENT merchantSaleUpdateLootIni "#*#You receive#*#for the #1#(s)."
+SUB EVENT_merchantSaleUpdateLootIni(line, itemName)
+  /if (!${toggleMerchantSellUpdateLootIni}) /return
+  
+  /if (${Debug} || ${Debug_Loot}) /echo |- EVENT_merchantPrepareUpdateLootIni itemName: ${itemName}
+  /if (${Debug} || ${Debug_Loot}) /echo |- EVENT_merchantPrepareUpdateLootIni updateLootWriteIniCommandStr: ${updateLootWriteIniCommandStr}
+
+  /if (${Bool[${updateLootWriteIniCommandStr}]} && ${updateLootWriteIniCommandStr.NotEqual[NULL]}) {
+    /if (${Debug} || ${Debug_Loot}) /echo |- EVENT_merchantPrepareUpdateLootIni -- 1
+    /if (${updateLootWriteIniCommandStr.Find[${itemName}]}) {
+      /if (${Debug} || ${Debug_Loot}) /echo |- EVENT_merchantPrepareUpdateLootIni -- 2
+      /echo [merchantSellUpdateLootIni] WRITING new ini value: ${updateLootWriteIniCommandStr}
+      /docommand ${updateLootWriteIniCommandStr}
+      /varset updateLootWriteIniCommandStr NULL
+    }
+  }
+/RETURN
+
+#EVENT merchantPrepareUpdateLootIni "#*#I'll give you #*# per #1#'"
+#EVENT merchantPrepareUpdateLootIni "#*#I'll give you #*# per #1#'."
+SUB EVENT_merchantPrepareUpdateLootIni(line, itemName)
+  /varset updateLootWriteIniCommandStr NULL
+  /if (!${toggleMerchantSellUpdateLootIni}) /return
+  /if (${Debug} || ${Debug_Loot}) /echo |- EVENT_merchantSellUpdateLootIni itemName: ${itemName}
+  /declare itemValue string local
+  /declare iniEntryVariables string local
+
+  |/declare itemToSell item local
+  |/varset itemToSell ${ItemFindItem[=${itemName}]}
+
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] itemName: ${itemName}
+  /if (${item.Find[:]}) /varset item ${itemName.Replace[:,;]}
+  /if (${item.Find[,]}) {
+    /call RemoveComma "${itemName}"
+    /varset itemName ${Macro.Return}
+  }
+  | Set itemName value
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] FindItem: ${FindItem[=${itemName}]
+  /varset itemValue ${FindItem[=${itemName}].Value}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] itemValue1: ${itemValue}
+  | This is actually calculating wrong... but it needs to match how it the rest of e3_Loot.ini works
+  /varset itemValue ${If[${Bool[${itemValue.Left[${Math.Calc[${itemValue.Length} - 3].Int}]}]},${itemValue.Left[${Math.Calc[${itemValue.Length} - 3].Int}]}p,]}${If[${Bool[${itemValue.Mid[${Math.Calc[${itemValue.Length} - 2].Int}]}]},${itemValue.Mid[${Math.Calc[${itemValue.Length} - 2].Int}]}g,]}${If[${Bool[${itemValue.Mid[${Math.Calc[${itemValue.Length} - 1].Int}]}]},${itemValue.Mid[${Math.Calc[${itemValue.Length} - 1].Int}]}s,]}${If[${Bool[${itemValue.Right[1]}]},${itemValue.Right[1]}c,]}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] itemValue2: ${itemValue}
+
+  | Set ini variables like stack size, (C), (ND) etc.
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] StackSize: ${If[${FindItem[=${itemName}].Stackable},(${FindItem[=${itemName}].StackSize}),]}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] ND:        ${If[${FindItem[=${itemName}].NoDrop},(ND),]}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] L:         ${If[${FindItem[=${itemName}].Lore},(L),]}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] C:         ${If[${FindItem[=${itemName}].Container},(C),]}
+
+  /varset iniEntryVariables ${If[${FindItem[=${itemName}].Stackable},(${FindItem[=${itemName}].StackSize}),]}${If[${FindItem[=${itemName}].NoDrop},(ND),]}${If[${FindItem[=${itemName}].Lore},(L),]}${If[${FindItem[=${itemName}].Container},(C),]}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] iniEntryVariables: ${iniEntryVariables}
+  | Check for a Loot_Ini entry
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] ifsuccess /if (!${Ini[${Loot_Ini},${itemName.Left[1]},${itemName} ${itemValue}${iniEntryVariables}].Length})
+
+  | Read ini
+  /declare oldIniValue string local
+  /varset oldIniValue ${Ini[${Loot_Ini},${itemName.Left[1]},${itemName} ${itemValue}${iniEntryVariables}]}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] oldIniValue: ${oldIniValue}
+
+  | Add ,Sell to the end of ini value
+  /declare newIniValue string local
+  /varset newIniValue ${oldIniValue}
+  | For now, don't crate new records in Loot Settings.ini, only update existing
+  /if (${oldIniValue.NotEqual[NULL]} && !${newIniValue.Find[Sell]}) {
+    /varset newIniValue ${newIniValue},Sell
+    | Write new value to ini
+    | /call WriteToIni "${Loot_Ini},${itemName.Left[1]},${itemName} ${itemValue}${iniEntryVariables}" "${newIniValue}" 1
+    /varset updateLootWriteIniCommandStr /call WriteToIni "${Loot_Ini},${itemName.Left[1]},${itemName} ${itemValue}${iniEntryVariables}" "${newIniValue}" 1
+  }
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] newIniValue: ${newIniValue}
+  /if (${Debug} || ${Debug_Loot}) /echo [merchantSellUpdateLootIni] lootSetting{FindItem[=${itemName}]: ${Ini[${Loot_Ini},${itemName.Left[1]},${itemName} ${itemValue}${iniEntryVariables}]}
+/RETURN
+
 
 |--------------------------------------------------------------------|
 |- Update Loot Setting
@@ -421,7 +521,7 @@ SUB EVENT_updateLootSetting(line, ChatSender, itemName, iniSetting)
 |--------------------------------------------------------------------|
 SUB loot_Setup
 /call iniToVarV "${advSettings_Ini},Debug,Debug Loot (On/Off)" Debug_Loot bool outer
-/if (${Debug} || ${Debug_Loot}) /echo |- _Setup ==>
+/if (${Debug} || ${Debug_Loot}) /echo |- loot_Setup ==>
 	/if (!${Ini[${MacroData_Ini},File Paths,Loot Settings File].Length}) /call WriteToIni "${MacroData_Ini},File Paths,Loot Settings File" "e3 Macro Inis\Loot Settings.ini" 1
 	/if (!${Ini[${MacroData_Ini},File Paths,Loot Settings File].Length}) {
 		/echo ERROR: Could not find designated file path for [Loot Settings File], please review [e3Data.ini] and restart.
@@ -435,6 +535,8 @@ SUB loot_Setup
   /declare canLootCorpse bool outer FALSE
   /declare cantLootCorpseCount int outer FALSE
   /declare lootSetting string outer
+  /declare toggleMerchantSellUpdateLootIni bool outer FALSE
+  /declare updateLootWriteIniCommandStr string outer 
 
 	/if (!${Ini[${Loot_Ini}].Length}) /call Build_Alphabetized_Ini "${Loot_Ini}"
 	/call iniToVarV "${genSettings_Ini},Loot,Loot Link Channel" linkChannel string outer
@@ -442,7 +544,7 @@ SUB loot_Setup
   /call iniToVarV "${genSettings_Ini},Loot,Loot in Combat" combatLooting bool outer
 	| Import character settings
 	/if (${Bool[${Ini[${Character_Ini},Misc,Auto-Loot (On/Off)]}]}) /call iniToVarV "${Character_Ini},Misc,Auto-Loot (On/Off)" Auto_Loot bool outer
-/if (${Debug} || ${Debug_Loot}) /echo <== _Setup -|
+/if (${Debug} || ${Debug_Loot}) /echo <== loot_Setup -|
 /RETURN
 
 |--------------------------------------------------------------------|
@@ -469,4 +571,9 @@ Sub loot_Background_Events
   /doevents lootRelay
   /doevents checkLootSetting
   /doevents updateLootSetting
+  /doevents merchantPrepareUpdateLootIni
+  | Get information to update ini before item is sold
+  /doevents toggleMerchantSellUpdateLootIni
+  | Write to ini file after item is sold
+  /doevents merchantSaleUpdateLootIni
 /return
