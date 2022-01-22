@@ -1714,7 +1714,7 @@ sub event_gimme(line, ChatSender, RequestedItem)
 	/declare DebugGimme false
   /declare replyType string local
   /varset replyType /tell
-  /if (${Bool[${Select[${ChatSender}, ${NetBots.Client}]}]}) /varset replyType /bct
+  /if (${NetBots.Client.Find[${ChatSender}]}) /varset replyType /bct
 	/if (${DebugGimme}) /echo |- event_gimme ==>
   /if (${Waiting4Rez}) /return
   /if (${Bool[${Me.Buff[Resurrection Sickness]}]}) /return
