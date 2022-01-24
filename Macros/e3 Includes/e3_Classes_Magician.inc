@@ -755,6 +755,7 @@ SUB MAG_Background_Events
 **|
   /doevents auto_coh
   /doevents petWeapons
+  /doevents petWeaponsNew
   /doevents armPets
 /RETURN
 
