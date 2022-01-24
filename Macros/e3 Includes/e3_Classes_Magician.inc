@@ -1,9 +1,11 @@
 |----------------------------------------------------------------------------|
 | Magician Functions
 |----------------------------------------------------------------------------|
-#event petWeapons "#1# tells you, 'Pet Weapon#*#'"
+| 01242022 - Fibbon: Moving 'Pet Weapon' to a new function to leverage Rekka's
+|                    new summonUnpackAndSelect and summonUnpackAndGive subs
+|#event petWeapons "#1# tells you, 'Pet Weapon#*#'"
 #event petWeapons "#1# tells you, 'Distribute Pet Weapon#*#'"
-#event petWeapons "<#1#> Pet Weapon#*#"
+|#event petWeapons "<#1#> Pet Weapon#*#"
 #event petWeapons "<#1#> Distribute Pet Weapon#*#"
 sub event_petWeapons(line, ChatSender)
 /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeapons ==>
@@ -61,6 +63,75 @@ sub event_petWeapons(line, ChatSender)
   }
   |/varset Debug_MAG FALSE
 /if (${Debug} || ${Debug_MAG}) /echo <== event_petWeapons -|
+/return
+						       
+| 01242022 - Fibbon: Moving 'Pet Weapon' to a new function to leverage Rekka's
+|                    new summonUnpackAndSelect and summonUnpackAndGive subs
+#event petWeaponsNew "#1# tells you, 'Pet Weapon#*#'"
+#event petWeaponsNew "<#1#> Pet Weapon#*#"
+sub event_petWeaponsNew(line, ChatSender)
+/if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsNew ==>
+  /declare wasFollowing bool local ${Following}
+  /varset Following FALSE
+  /varset Debug_MAG FALSE
+  | Hardcoding singlePet TRUE for now, not testing distribute yet
+  /declare singlePet bool local TRUE
+  /if (${Defined[petIDArray]}) /deletevar petIDArray
+
+  /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
+  /if (!${Defined[petItems2D]}) {
+    /if (${Debug} || ${Debug_MAG}) /echo I do not have any Pet Items defined...
+    /if (${singlePet} && ${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} I do not have any Pet Items defined...
+  } else /if (!${SpawnCount[${c_eventArgChatSender}]}) {
+    /echo ${c_eventArgChatSender} is not in the zone
+    /if (${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} We are not in the same zone...
+  } else /if (!${singlePet} && !${SpawnCount[pcpet radius 50]}) {
+      /echo There are no PC Pets withing a radius of 50
+      /if (${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} No pets a radius of 50...
+  } else /if (${singlePet} && ${Spawn[${c_eventArgChatSender}].Pet.Distance}>100) {
+      /if (${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} Your pet is not in a radius of 100...
+  } else {
+    /if (!${singlePet} && ${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} Handing out pet weapons...
+    /declare originalLoc string local ${Me.Loc}
+    /declare p int local
+    |if distribute, give to everyone, else just give to the single chatsender
+    /for p 1 to ${SpawnCount[pcpet radius 50]}
+      /if (!${NearestSpawn[${p},pcpet].Name.Find[familiar]}) {
+        |/echo ${p} ${NearestSpawn[${p},pcpet]} ${NearestSpawn[${p},pcpet].Name} ${NearestSpawn[${p},pcpet].Master} ${c_eventArgChatSender}
+        |/echo los ${NearestSpawn[${p},pcpet].LineOfSight} d ${Bool[${line.Find[Distribute]}]}
+        /if (${NearestSpawn[${p},pcpet].LineOfSight}) {
+          /if (!${singlePet}) {
+            /call BuildArray petIDArray ${NearestSpawn[${p},pcpet].ID}
+            |/echo all added ${NearestSpawn[${p},pcpet].Name}-${NearestSpawn[${p},pcpet].Master} ${petIDArray.Size}
+          } else /if (${NearestSpawn[${p},pcpet].Master.CleanName.Equal[${c_eventArgChatSender}]}) {
+            /call BuildArray petIDArray ${NearestSpawn[${p},pcpet].ID}
+            |/echo you added ${NearestSpawn[${p},pcpet].Name}-${NearestSpawn[${p},pcpet].Master} ${petIDArray.Size}
+          }
+        }
+      }
+    /next p
+    /if (${Defined[petIDArray]}) {
+      /if (${Stick.Active}) /squelch /stick off
+      /if (${NetAdvPath.Status}==1) /squelch /netfollow off
+      /for p 1 to ${petIDArray.Size}
+	/if (${Spawn[id ${petIDArray[${p}]}].Master.CleanName.NotEqual[${Me}]}) /tell ${Spawn[id ${petIDArray[${p}]}].Master} Incoming pet weapons, hold still!
+	/declare petItemIndex int local
+        /for petItemIndex 1 to ${petItems2D.Size[1]}
+	  /call summonUnpackAndGive ${petItems2D[${petItemIndex},${iCastName}]}
+	  /delay 1s
+	  /if (${Spawn[id ${petIDArray[${p}]}].Master.CleanName.NotEqual[${Me}]}) /tell ${Spawn[id ${petIDArray[${p}]}].Master} Successfully gave ${petItems2D[${petItemIndex},${iCastName}]} to pet.
+	/next petItemIndex
+      /next p
+    }
+
+    /if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
+    /if (${c_eventArgChatSender.NotEqual[${Me}]}) {
+      /delay 1s
+      /tell ${c_eventArgChatSender} Finished arming pets. If anything is missing, ask for it directly. Ex: "/tell ${Me.CleanName} Grant Spectral Plate".
+    }
+    /varset Following ${wasFollowing}
+  }
+  /if (${Debug} || ${Debug_MAG}) /echo <== event_petWeaponsNew -|
 /return
 
 #event armPets "#1# tells you, 'Arm Pets'"
