@@ -71,7 +71,6 @@ sub event_petWeapons(line, ChatSender)
 #event petWeaponsNew "<#1#> Pet Weapon#*#"
 sub event_petWeaponsNew(line, ChatSender, notFinishedYet)
 /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsNew ==>
-  /varset Debug_MAG FALSE
   /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
 
   /declare originalLoc string local ${Me.Loc}
@@ -127,9 +126,6 @@ sub petArmorAndJewelry(petId)
 #event petWeaponsSpecific "#1# tells you, 'Specific Pet Weapon#*# #2# #3#'"
 #event petWeaponsSpecific "<#1#> Specific Pet Weapon#*# #2# #3#"
 sub event_petWeaponsSpecific(line, ChatSender, primary, secondary)
-  | Temporary
-  /declare Debug_MAG_orig bool local ${Debug_MAG}
-  /varset Debug_MAG TRUE
   /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsSpecific ==>
 
   /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
@@ -188,7 +184,6 @@ sub event_petWeaponsSpecific(line, ChatSender, primary, secondary)
   /if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
 
   /if (${Debug} || ${Debug_MAG}) /echo <== event_petWeaponsSpecific -|
-  /varset Debug_MAG ${Debug_MAG_orig}
 /return
 
 #event armPets "#1# tells you, 'Arm Pets'"
