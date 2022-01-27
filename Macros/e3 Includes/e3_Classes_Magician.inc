@@ -1,9 +1,11 @@
 |----------------------------------------------------------------------------|
 | Magician Functions
 |----------------------------------------------------------------------------|
-#event petWeapons "#1# tells you, 'Pet Weapon#*#'"
+| 01242022 - Fibbon: Moving 'Pet Weapon' to a new function to leverage Rekka's
+|                    new summonUnpackAndSelect and summonUnpackAndGive subs
+|#event petWeapons "#1# tells you, 'Pet Weapon#*#'"
 #event petWeapons "#1# tells you, 'Distribute Pet Weapon#*#'"
-#event petWeapons "<#1#> Pet Weapon#*#"
+|#event petWeapons "<#1#> Pet Weapon#*#"
 #event petWeapons "<#1#> Distribute Pet Weapon#*#"
 sub event_petWeapons(line, ChatSender)
 /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeapons ==>
@@ -61,6 +63,127 @@ sub event_petWeapons(line, ChatSender)
   }
   |/varset Debug_MAG FALSE
 /if (${Debug} || ${Debug_MAG}) /echo <== event_petWeapons -|
+/return
+						       
+| 01242022 - Fibbon: Moving 'Pet Weapon' to a new function to leverage Rekka's
+|                    new summonUnpackAndSelect and summonUnpackAndGive subs
+#event petWeaponsNew "#1# tells you, 'Pet Weapon#*#'"
+#event petWeaponsNew "<#1#> Pet Weapon#*#"
+sub event_petWeaponsNew(line, ChatSender, notFinishedYet)
+/if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsNew ==>
+  /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
+
+  /declare originalLoc string local ${Me.Loc}
+  /if (${Stick.Active}) /squelch /stick off
+  /if (${NetAdvPath.Status}==1) /squelch /netfollow off
+
+  /call petArmorAndJewelry ${Spawn[${c_eventArgChatSender}].Pet.ID}
+
+  /delay 1s
+  /tell ${c_eventArgChatSender} Finished arming pets. Try the new "/tell ${Me.CleanName} specific pet weapon <primary> <secondary>", where <primary>/<secondary> can be: fire/ice/shield/hate/slow/mala/dispell/snare
+
+  /if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
+  /if (${Debug} || ${Debug_MAG}) /echo <== event_petWeaponsNew -|
+/return
+
+sub petArmorAndJewelry(petId)
+  /declare petOwner string local ${Spawn[id ${petId}].Master.CleanName}
+  /echo petOwner: ${petOwner} petId: ${petId}
+  /delay 1s
+  /if (${Spawn[${petOwner}].CleanName.NotEqual[${Me}]}) /tell ${petOwner} Incoming pet weapons, hold still!
+
+  /bc Arm Pets: Working on ${petOwner} 's pet
+  /if (${Me.Book[Grant Enibik's Heirlooms]}) {
+      /bc Arm Pets: Creating Heirlooms
+      /call summonUnpackAndGive ${petId} "Grant Enibik's Heirlooms" "Folded Pack of Enibik's Heirlooms"
+  }
+  /delay 1s
+  /tell ${petOwner} --- Gave "Grant Enibik's Heirlooms" to ${Spawn[${petId}].CleanName}. 
+
+  /if (${Cursor.ID}) {
+    /bc Arm Pets: Something went wrong and something is on your cursor, exiting.
+    /goto :armpetend
+  }
+  /if (${Me.Book[Grant Spectral Plate]}) {
+    /bc Arm Pets: Creating Spectral Plate
+    /call summonUnpackAndGive ${petId} "Grant Spectral Plate" "Folded Pack of Spectral Plate"
+  }
+  /delay 1s
+  /tell ${petOwner} --- Gave "Grant Spectral Plate" to ${Spawn[${petId}].CleanName}.
+  /delay 1s
+
+  /if (${Cursor.ID}) {
+    /bc Arm Pets: Something went wrong and something is on your cursor, exiting.
+    /goto :armpetend
+  }
+  :armpetend
+/return
+
+| 01242022 - Fibbon: A more specific pet weapon command to leverage Rekka's
+|                    new summonUnpackAndSelect and summonUnpackAndGive subs
+|                    <primary> or <secondary> can be: 
+|                    fire/ice/shield/hate/slow/mala/dispell/snare
+#event petWeaponsSpecific "#1# tells you, 'Specific Pet Weapon#*# #2# #3#'"
+#event petWeaponsSpecific "<#1#> Specific Pet Weapon#*# #2# #3#"
+sub event_petWeaponsSpecific(line, ChatSender, primary, secondary)
+  /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsSpecific ==>
+
+  /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
+
+  /declare originalLoc string local ${Me.Loc}
+  /if (${Stick.Active}) /squelch /stick off
+  /if (${NetAdvPath.Status}==1) /squelch /netfollow off
+
+  /call petArmorAndJewelry ${Spawn[${c_eventArgChatSender}].Pet.ID}
+
+  /if (${Debug} || ${Debug_MAG}) /echo primary: ${primary} secondary: ${secondary}
+  /declare primaryItemName string local NULL
+  /declare secondaryItemName string local NULL
+  /if (${primary.Equal[fire]}) /varset primaryItemName "Summoned: Fist of Flame"
+  /if (${primary.Equal[ice]}) /varset primaryItemName "Summoned: Orb of Chilling Water"
+  /if (${primary.Equal[shield]}) /varset primaryItemName "Summoned: Buckler of Draining Defense"
+  /if (${primary.Equal[hate]}) /varset primaryItemName "Summoned: Short Sword of Warding"
+  /if (${primary.Equal[slow]}) /varset primaryItemName "Summoned: Mace of Temporal Distortion"
+  /if (${primary.Equal[mala]}) /varset primaryItemName "Summoned: Spear of Maliciousness"
+  /if (${primary.Equal[dispell]}) /varset primaryItemName "Summoned: Wand of Dismissal"
+  /if (${primary.Equal[snare]}) /varset primaryItemName "Summoned: Tendon Carver"
+
+  /if (${Debug} || ${Debug_MAG}) /echo primary: ${primaryItemName} secondary: ${secondaryItemName}
+  /if (${primaryItemName.Equal[NULL]}) {
+    /delay 1s
+    /tell ${c_eventArgChatSender} Invalid primary item: ${primary}, defaulting to ice
+    /varset primaryItemName "Summoned: Orb of Chilling Water"
+  }
+  
+  /if (${secondary.Equal[fire]}) /varset secondaryItemName "Summoned: Fist of Flame"
+  /if (${secondary.Equal[ice]}) /varset secondaryItemName "Summoned: Orb of Chilling Water"
+  /if (${secondary.Equal[shield]}) /varset secondaryItemName "Summoned: Buckler of Draining Defense"
+  /if (${secondary.Equal[hate]}) /varset secondaryItemName "Summoned: Short Sword of Warding"
+  /if (${secondary.Equal[slow]}) /varset secondaryItemName "Summoned: Mace of Temporal Distortion"
+  /if (${secondary.Equal[mala]}) /varset secondaryItemName "Summoned: Spear of Maliciousness"
+  /if (${secondary.Equal[dispell]}) /varset secondaryItemName "Summoned: Wand of Dismissal"
+  /if (${secondary.Equal[snare]}) /varset secondaryItemName "Summoned: Tendon Carver"
+
+  /if (${Debug} || ${Debug_MAG}) /echo primary: ${primaryItemName} secondary: ${secondaryItemName}
+  /if (${secondaryItemName.Equal[NULL]}) {
+    /delay 1s
+    /tell ${c_eventArgChatSender} Invalid secondary item: ${secondary}, defaulting to ice
+    /varset secondaryItemName "Summoned: Orb of Chilling Water"
+  }
+  /if (${Debug} || ${Debug_MAG}) /echo primary: ${primaryItemName} secondary: ${secondaryItemName}
+
+  /delay 1s
+  /tell ${c_eventArgChatSender} Selected Weapons are ${primaryItemName} and ${secondaryItemName} for pet: ${Spawn[${c_eventArgChatSender}].Pet.Name}
+  /bc petWeaponsSpecific: Selected Weapons are ${primaryItemName} and ${secondaryItemName} for pet: ${Spawn[${c_eventArgChatSender}].Pet.Name}
+  /bc petWeaponsSpecific: Creating Weapons
+  /call summonUnpackAndSelect ${Spawn[${c_eventArgChatSender}].Pet.ID} "Grant Spectral Armaments" "Folded Pack of Spectral Armaments" ${primaryItemName} ${secondaryItemName}
+
+  /delay 1s
+  /tell ${c_eventArgChatSender} Finished arming pets.
+
+  /if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
+
+  /if (${Debug} || ${Debug_MAG}) /echo <== event_petWeaponsSpecific -|
 /return
 
 #event armPets "#1# tells you, 'Arm Pets'"
@@ -684,6 +807,8 @@ SUB MAG_Background_Events
 **|
   /doevents auto_coh
   /doevents petWeapons
+  /doevents petWeaponsNew
+  /doevents petWeaponsSpecific
   /doevents armPets
 /RETURN
 
