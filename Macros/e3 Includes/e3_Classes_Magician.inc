@@ -19,17 +19,17 @@ sub event_petWeapons(line, ChatSender)
   /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
   /if (!${Defined[petItems2D]}) {
     /if (${Debug} || ${Debug_MAG}) /echo I do not have any Pet Items defined...
-    /if (${singlePet} && ${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} I do not have any Pet Items defined...
+    /if (${singlePet} && ${c_eventArgChatSender.NotEqual[${Me}]}) /call notifyViaBCTell ${c_eventArgChatSender} "I do not have any Pet Items defined..."
   } else /if (!${SpawnCount[${c_eventArgChatSender}]}) {
     /echo ${c_eventArgChatSender} is not in the zone
-    /if (${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} We are not in the same zone...
+    /if (${c_eventArgChatSender.NotEqual[${Me}]}) /call notifyViaBCTell ${c_eventArgChatSender} "We are not in the same zone..."
   } else /if (!${singlePet} && !${SpawnCount[pcpet radius 50]}) {
       /echo There are no PC Pets withing a radius of 50
-      /if (${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} No pets a radius of 50...
+      /if (${c_eventArgChatSender.NotEqual[${Me}]}) /call notifyViaBCTell ${c_eventArgChatSender} "No pets a radius of 50..."
   } else /if (${singlePet} && ${Spawn[${c_eventArgChatSender}].Pet.Distance}>100) {
-      /if (${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} Your pet is not in a radius of 100...
+      /if (${c_eventArgChatSender.NotEqual[${Me}]}) /call notifyViaBCTell ${c_eventArgChatSender} "Your pet is not in a radius of 100..."
   } else {
-    /if (!${singlePet} && ${c_eventArgChatSender.NotEqual[${Me}]}) /tell ${c_eventArgChatSender} Handing out pet weapons...
+    /if (!${singlePet} && ${c_eventArgChatSender.NotEqual[${Me}]}) /call notifyViaBCTell ${c_eventArgChatSender} "Handing out pet weapons..."
     /declare originalLoc string local ${Me.Loc}
     /declare p int local
     |if distribute, give to everyone, else just give to the single chatsender
@@ -57,7 +57,7 @@ sub event_petWeapons(line, ChatSender)
     /if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
     /if (${c_eventArgChatSender.NotEqual[${Me}]}) {
 		/delay 1s
-		/tell ${c_eventArgChatSender} Finished arming pets. If anything is missing, ask for it directly. Ex: "/tell ${Me.CleanName} Grant Spectral Plate".
+		/call notifyViaBCTell ${c_eventArgChatSender} "Finished arming pets. If anything is missing, ask for it directly. Ex: /tell ${Me.CleanName} Grant Spectral Plate."
 	}
     /varset Following ${wasFollowing}
   }
@@ -72,6 +72,14 @@ sub event_petWeapons(line, ChatSender)
 sub event_petWeaponsNew(line, ChatSender, notFinishedYet)
 /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsNew ==>
   /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
+  /if (${Target.Distance}>100) {
+    /call notifyViaBCTell ${c_eventArgChatSender} "You're too far away to request weapons, please move within 100 units"
+    /return
+  }
+  /if (${Target.Pet.Distance}>100) {
+    /call notifyViaBCTell ${c_eventArgChatSender} "You're pet is too far away to request weapons, please move within 100 units"
+    /return
+  }
 
   /declare originalLoc string local ${Me.Loc}
   /if (${Stick.Active}) /squelch /stick off
@@ -80,7 +88,7 @@ sub event_petWeaponsNew(line, ChatSender, notFinishedYet)
   /call petArmorAndJewelry ${Spawn[${c_eventArgChatSender}].Pet.ID}
 
   /delay 1s
-  /tell ${c_eventArgChatSender} Finished arming pets. Try the new "/tell ${Me.CleanName} specific pet weapon <primary> <secondary>", where <primary>/<secondary> can be: fire/ice/shield/hate/slow/mala/dispell/snare
+  /call notifyViaBCTell ${c_eventArgChatSender} "Finished arming pets. Try the new /tell ${Me.CleanName} specific pet weapon <primary> <secondary>, where <primary>/<secondary> can be: fire/ice/shield/hate/slow/mala/dispell/snare"
 
   /if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
   /if (${Debug} || ${Debug_MAG}) /echo <== event_petWeaponsNew -|
@@ -90,7 +98,7 @@ sub petArmorAndJewelry(petId)
   /declare petOwner string local ${Spawn[id ${petId}].Master.CleanName}
   /echo petOwner: ${petOwner} petId: ${petId}
   /delay 1s
-  /if (${Spawn[${petOwner}].CleanName.NotEqual[${Me}]}) /tell ${petOwner} Incoming pet weapons, hold still!
+  /if (${Spawn[${petOwner}].CleanName.NotEqual[${Me}]}) /call notifyViaBCTell ${petOwner} "Incoming pet weapons, hold still!"
 
   /bc Arm Pets: Working on ${petOwner} 's pet
   /if (${Me.Book[Grant Enibik's Heirlooms]}) {
@@ -98,7 +106,7 @@ sub petArmorAndJewelry(petId)
       /call summonUnpackAndGive ${petId} "Grant Enibik's Heirlooms" "Folded Pack of Enibik's Heirlooms"
   }
   /delay 1s
-  /tell ${petOwner} --- Gave "Grant Enibik's Heirlooms" to ${Spawn[${petId}].CleanName}. 
+  /call notifyViaBCTell ${petOwner} "--- Gave Grant Enibik's Heirlooms to ${Spawn[${petId}].CleanName}."
 
   /if (${Cursor.ID}) {
     /bc Arm Pets: Something went wrong and something is on your cursor, exiting.
@@ -109,7 +117,7 @@ sub petArmorAndJewelry(petId)
     /call summonUnpackAndGive ${petId} "Grant Spectral Plate" "Folded Pack of Spectral Plate"
   }
   /delay 1s
-  /tell ${petOwner} --- Gave "Grant Spectral Plate" to ${Spawn[${petId}].CleanName}.
+  /call notifyViaBCTell ${petOwner} --- Gave Grant Spectral Plate to ${Spawn[${petId}].CleanName}.
   /delay 1s
 
   /if (${Cursor.ID}) {
@@ -129,6 +137,14 @@ sub event_petWeaponsSpecific(line, ChatSender, primary, secondary)
   /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsSpecific ==>
 
   /if (!${checkEventArgs[${ChatSender},${line},ZR]}) /return
+  /if (${Spawn[${c_eventArgChatSender}].Distance}>100) {
+    /call notifyViaBCTell ${c_eventArgChatSender} "You're too far away to request weapons, please move within 100 units"
+    /return
+  }
+  /if (${Spawn[${c_eventArgChatSender}].Pet.Distance}>100) {
+    /call notifyViaBCTell ${c_eventArgChatSender} "You're pet is too far away to request weapons, please move within 100 units"
+    /return
+  }
 
   /declare originalLoc string local ${Me.Loc}
   /if (${Stick.Active}) /squelch /stick off
@@ -151,7 +167,7 @@ sub event_petWeaponsSpecific(line, ChatSender, primary, secondary)
   /if (${Debug} || ${Debug_MAG}) /echo primary: ${primaryItemName} secondary: ${secondaryItemName}
   /if (${primaryItemName.Equal[NULL]}) {
     /delay 1s
-    /tell ${c_eventArgChatSender} Invalid primary item: ${primary}, defaulting to ice
+    /call notifyViaBCTell ${c_eventArgChatSender} "Invalid primary item: ${primary}, defaulting to ice"
     /varset primaryItemName "Summoned: Orb of Chilling Water"
   }
   
@@ -167,19 +183,19 @@ sub event_petWeaponsSpecific(line, ChatSender, primary, secondary)
   /if (${Debug} || ${Debug_MAG}) /echo primary: ${primaryItemName} secondary: ${secondaryItemName}
   /if (${secondaryItemName.Equal[NULL]}) {
     /delay 1s
-    /tell ${c_eventArgChatSender} Invalid secondary item: ${secondary}, defaulting to ice
+    /call notifyViaBCTell ${c_eventArgChatSender} "Invalid secondary item: ${secondary}, defaulting to ice"
     /varset secondaryItemName "Summoned: Orb of Chilling Water"
   }
   /if (${Debug} || ${Debug_MAG}) /echo primary: ${primaryItemName} secondary: ${secondaryItemName}
 
   /delay 1s
-  /tell ${c_eventArgChatSender} Selected Weapons are ${primaryItemName} and ${secondaryItemName} for pet: ${Spawn[${c_eventArgChatSender}].Pet.Name}
+  /call notifyViaBCTell ${c_eventArgChatSender} "Selected Weapons are ${primaryItemName} and ${secondaryItemName} for pet: ${Spawn[${c_eventArgChatSender}].Pet.Name}"
   /bc petWeaponsSpecific: Selected Weapons are ${primaryItemName} and ${secondaryItemName} for pet: ${Spawn[${c_eventArgChatSender}].Pet.Name}
   /bc petWeaponsSpecific: Creating Weapons
   /call summonUnpackAndSelect ${Spawn[${c_eventArgChatSender}].Pet.ID} "Grant Spectral Armaments" "Folded Pack of Spectral Armaments" ${primaryItemName} ${secondaryItemName}
 
   /delay 1s
-  /tell ${c_eventArgChatSender} Finished arming pets.
+  /call notifyViaBCTell ${c_eventArgChatSender} "Finished arming pets."
 
   /if (${Math.Distance[${originalLoc}]}>20) /call MoveToLoc ${originalLoc} 50 20
 
@@ -217,12 +233,12 @@ sub event_armPets(line, ChatSender, loadType)
   :bagslotcheckdone
   /if (${BackSlotThatIsOpen}==0) {
     |no empty bag slot available
-    /tell ${ChatSender}  Arm Pets: No empty bag slot on mage. Exiting.
+    /call notifyViaBCTell ${ChatSender} "Arm Pets: No empty bag slot on mage. Exiting."
     /goto :armpetend
   } 
  
 
-  /tell ${ChatSender} Starting the arming of group pets.
+  /call notifyViaBCTell ${ChatSender} "Starting the arming of group pets."
   |note for the weapons, you need na empty bag slot for this to work.
   /declare counter int local 0
   /declare bodytype string local
@@ -235,7 +251,7 @@ sub event_armPets(line, ChatSender, loadType)
 
   /if (${Cursor.ID}) {
     /echo Arm Pets: Something is on your cursor, exiting.
-    /tell ${ChatSender}  Arm Pets: Error, check mage for detail.
+    /call notifyViaBCTell ${ChatSender} "Arm Pets: Error, check mage for detail."
     /goto :armpetend
   }
   |/echo got to for loop: ${characterToWorkOn.Length} : ${characterToWorkOn.Length}>0]}
@@ -363,7 +379,7 @@ sub event_armPets(line, ChatSender, loadType)
     }
     |/echo ${Spawn[${Group.Member[${counter}]}].Name} the ${Spawn[${Group.Member[${counter}]}].Class} has pet: ${Spawn[${Group.Member[${counter}]}].Pet.ID} which is ${bodytype}
   /next counter
-  /tell ${ChatSender} Finished arming pets.
+  /call notifyViaBCTell ${ChatSender} "Finished arming pets."
 :armpetend
 /if (${Debug} || ${Debug_MAG}) /echo <== event_armPets -|
 /return
@@ -546,7 +562,7 @@ SUB give_PetsWeapons(autoWeap)
     |/echo ${p}-${petIDArray[${p}]}-${Spawn[id ${petIDArray[${p}]}].Name}-${Spawn[id ${petIDArray[${p}]}].Master}
     /if (${SpawnCount[id ${petIDArray[${p}]}]}) {
       /varset allWeapSuccess TRUE
-      /if (${Spawn[id ${petIDArray[${p}]}].Master.CleanName.NotEqual[${Me}]}) /tell ${Spawn[id ${petIDArray[${p}]}].Master} Incoming pet weapons, hold still!
+      /if (${Spawn[id ${petIDArray[${p}]}].Master.CleanName.NotEqual[${Me}]}) /call notifyViaBCTell ${Spawn[id ${petIDArray[${p}]}].Master} "Incoming pet weapons, hold still!"
       /call TrueTarget ${petIDArray[${p}]}
       /if (${Target.ID} && ${Target.Distance}>19) /call MoveToLoc ${Target.Y} ${Target.X} 50 15
         /for w 1 to ${petItems2D.Size[1]}
@@ -603,7 +619,7 @@ SUB give_PetsWeapons(autoWeap)
             } else {
               :WaitAccept_Loop
 			  /if (${c_eventArgChatSender.NotEqual[${Me}]}) {
-				/tell ${Spawn[id ${petIDArray[${p}]}].Master} ---Giving "${petItems2D[${w},${iCastName}]}" to ${Spawn[id ${petIDArray[${p}]}].CleanName}.
+				/call notifyViaBCTell ${Spawn[id ${petIDArray[${p}]}].Master} "---Giving ${petItems2D[${w},${iCastName}]} to ${Spawn[id ${petIDArray[${p}]}].CleanName}."
 			  }
               /notify GiveWnd GVW_Give_Button LeftMouseUp
               /delay 1s !${Window[GiveWnd].Open}
