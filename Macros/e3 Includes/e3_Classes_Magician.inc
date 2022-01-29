@@ -133,6 +133,7 @@ sub petArmorAndJewelry(petId)
 |                    fire/ice/shield/hate/slow/mala/dispell/snare
 #event petWeaponsSpecific "#1# tells you, 'Specific Pet Weapon#*# #2# #3#'"
 #event petWeaponsSpecific "<#1#> Specific Pet Weapon#*# #2# #3#"
+#event petWeaponsSpecific "[#1#(msg)] Specific Pet Weapon#*# #2# #3#"
 sub event_petWeaponsSpecific(line, ChatSender, primary, secondary)
   /if (${Debug} || ${Debug_MAG}) /echo |- event_petWeaponsSpecific ==>
 
