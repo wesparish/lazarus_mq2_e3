@@ -33,7 +33,7 @@
 |--------------------------------------------------------------------------------|
 SUB clearXTargets_Setup
 	/declare ClearXTargetsOn bool outer FALSE
-	/declare ClearXTargetsDebug bool outer TRUE
+	/declare ClearXTargetsDebug bool outer FALSE
   /declare NumAggroTargets int outer 0
   /declare KeepAggroOn bool outer FALSE
 

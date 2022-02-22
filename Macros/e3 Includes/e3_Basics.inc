@@ -2597,6 +2597,8 @@ SUB event_outOfSomething(line, Something)
 |-----------------------------------------------------------|
 SUB check_mapshow_npc
 /if (${Debug}) /echo |-check_mapshow_npc ==>
+  /if (!${SpawnCount[pc ${Me}]}) /return
+
   /if (!${Defined[AutoMapshowNpc]}) {
     /call iniToVarV "${Character_Ini},Misc,AutoMapshowNpc" AutoMapshowNpc bool outer
     /declare AutoMapshowNpcNumSpawns int outer ${SpawnCount[npc]}
