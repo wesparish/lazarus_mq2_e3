@@ -33,9 +33,16 @@
 |--------------------------------------------------------------------------------|
 SUB clearXTargets_Setup
 	/declare ClearXTargetsOn bool outer FALSE
-	/declare ClearXTargetsDebug bool outer FALSE
+	/declare ClearXTargetsDebug bool outer TRUE
   /declare NumAggroTargets int outer 0
   /declare KeepAggroOn bool outer FALSE
+
+  /declare ClearXTAssistCommand string outer /assistme
+  /if (${IniExt[${Character_Ini},Misc,ClearXTAssistCommand].Count} > 0) {
+      /call iniToVarV "${Character_Ini},Misc,ClearXTAssistCommand" ClearXTAssistCommand string outer
+  }
+  /if (${ClearXTargetsDebug}) /echo ClearXTAssistCommand = ${ClearXTAssistCommand}
+
 
   /if (!${Defined[FollowAfterClearXTargets]}) {
     /if (${IniExt[${Character_Ini},Misc,FollowAfterClearXTargets].Count} > 0) {
@@ -132,7 +139,7 @@ SUB event_nextTarget(line, ChatSender)
     /delay 1
     /bcga //pet attack
     /delay 1
-    /assistme
+    /docommand ${ClearXTAssistCommand}
     /varset AllowControl TRUE
     /varset AssistStickDistance ${ClearXTargetStickDistance}
   } else {
@@ -253,7 +260,7 @@ SUB event_rotateTarget(line, ChatSender)
     /delay 1
     /bcga //pet attack
     /delay 1
-    /assistme
+    /docommand ${ClearXTAssistCommand}
     /varset AllowControl TRUE
     /varset AssistStickDistance ${ClearXTargetStickDistance}
   } else {
