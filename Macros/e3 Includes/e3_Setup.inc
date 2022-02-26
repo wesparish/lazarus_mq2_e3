@@ -25,6 +25,7 @@
 #include e3 Includes\e3_QueueCast.inc
 #include e3 Includes\e3_ClearXTargets.inc
 #include e3 Includes\e3_SmartCollect.inc
+#include e3 Includes\e3_Patrol.inc
 
 #include e3 Includes\e3_Classes_Bard.inc
 #include e3 Includes\e3_Classes_Beastlord.inc
