@@ -637,7 +637,7 @@ SUB loot_Setup
   /declare canLootCorpse bool outer FALSE
   /declare cantLootCorpseCount int outer FALSE
   /declare lootSetting string outer
-  /declare toggleMerchantSellUpdateLootIni bool outer FALSE
+  /declare toggleMerchantSellUpdateLootIni bool outer TRUE
   /declare updateLootWriteIniCommandStr string outer 
 
 	/if (!${Ini[${Loot_Ini}].Length}) /call Build_Alphabetized_Ini "${Loot_Ini}"
