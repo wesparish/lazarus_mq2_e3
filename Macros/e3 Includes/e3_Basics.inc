@@ -1609,6 +1609,7 @@ Sub basics_Background_Events
   /doevents manastoneToggle
   /doevents outOfSomething
   /doevents ItemDeleteSummoned
+  /doevents FollowCannotSee
   /call check_StoneOn
 |		/varset event_counter 1
 |	} else {
@@ -2611,6 +2612,15 @@ SUB check_mapshow_npc
     }
   }
 /if (${Debug}) /echo <== check_mapshow_npc -|
+/RETURN
+
+|--------------------------------------------------------------------------------|
+| Anytime a character says to /bc "<target> I cannot see [commandissuer]", this  |
+| event pops up a message warning you.                                           |
+|--------------------------------------------------------------------------------|
+#event FollowCannotSee "<#1#> I cannot see [#2#]."
+SUB event_FollowCannotSee(line, ChatSender, MyName)
+  /popup "${ChatSender} cannot see ${MyName}"
 /RETURN
 
 |--------------------------------------------------------------------------------|
