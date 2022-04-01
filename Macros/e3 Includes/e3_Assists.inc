@@ -50,6 +50,23 @@ SUB event_Assist(line, ChatSender, int MobID)
         |/docommand ${ChatToggle} Attacking - ${AssistTarget} - ${Spawn[${AssistTarget}].CleanName}
         /if (${Target.ID} != ${AssistTarget} && (!${Bool[${Me.Casting}]} || ${Me.Class.ShortName.Equal[BRD]}) && (${AssistType.Equal[melee]} || ${AssistType.Equal[ranged]})) /call TrueTarget ${AssistTarget}
         /if (${Me.Pet.ID}) {
+          | Check if Pet should be Taunting named
+          /if (${Spawn[${AssistTarget}].Named}) {
+            /if (!${pet_TauntNamed}) {
+              /echo "Named detected, disabling /pet taunt"
+              /pet taunt off
+            }
+          } else {
+            | Not a named, set pet taunt to what it should be
+            /if (${petTaunt} && !${Pet.Taunt}) {
+              /echo "No Named detected, re-enabling /pet taunt"
+              /pet taunt on
+            }
+            /if (!${petTaunt} && ${Pet.Taunt}) {
+              /echo "No Named detected, /pet taunt set to off in bot.ini"
+              /pet taunt off
+            }
+          }
           /if (${Debug} || ${Debug_Assists}) /echo Pet Check: Sending pet in
           /pet attack ${AssistTarget}
         }
@@ -1712,6 +1729,9 @@ Sub assist_Setup
 	/if (${Ini[${Character_Ini},Assist Settings,Melee Distance].Length})                  /call iniToVarV "${Character_Ini},Assist Settings,Melee Distance" AssistDistanceSetting string outer
 	/if (${Ini[${Character_Ini},Assist Settings,Ranged Distance].Length})                 /call iniToVarV "${Character_Ini},Assist Settings,Ranged Distance" RangedStickDistance string outer
 	/if (${Ini[${Character_Ini},Assist Settings,Auto-Assist Engage Percent].Length})      /call iniToVarV "${Character_Ini},Assist Settings,Auto-Assist Engage Percent" EngagePct int outer
+
+	/if (${Ini[${Character_Ini},Pets,Pet Taunt Named (On/Off)].Length})                   /call iniToVarV "${Character_Ini},Pets,Pet Taunt Named (On/Off)" pet_TauntNamed bool outer
+
 	/if (!${Defined[EngagePct]}) {
 		/if (${Debug} || ${Debug_Assists}) /echo ERROR: @[EngagePct] - EngagePct is invalid, defaulting to 98%
 		/declare EngagePct int outer 98
